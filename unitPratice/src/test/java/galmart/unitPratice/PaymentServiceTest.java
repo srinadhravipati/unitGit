@@ -50,4 +50,27 @@ class PaymentServiceTest {
         verify(notificationService, times(1)).notifyUser(eq(userId), anyString());
         verify(paymentRepository, times(1)).updateStatus(anyString(), eq("COMPLETED"));
     }
+    @Test
+    void testProcessPayment_InvalidAmount_ThrowsException() {
+        // Arrange
+        String userId = "user123";
+        BigDecimal invalidAmount = new BigDecimal("-100.00");
+
+        // Mock validator behavior to simulate invalid amount
+        when(paymentValidator.isValidAmount(invalidAmount)).thenReturn(false);
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> paymentService.processPayment(userId, invalidAmount)
+        );
+
+        // Verify the exception message
+        assertEquals("Invalid payment amount", exception.getMessage());
+
+        // Verify no repository or notification call occurred
+        verify(paymentRepository, never()).save(any());
+        verify(notificationService, never()).notifyUser(anyString(), anyString());
+    }
+
 }

@@ -72,5 +72,21 @@ class PaymentServiceTest {
         verify(paymentRepository, never()).save(any());
         verify(notificationService, never()).notifyUser(anyString(), anyString());
     }
+    @Test
+    void testGetPaymentById_NotFound_ThrowsException() {
+        // Arrange
+        String invalidPaymentId = "invalid123";
+        when(paymentRepository.findById(invalidPaymentId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> paymentService.getPaymentById(invalidPaymentId)
+        );
+
+        assertTrue(exception.getMessage().contains("Payment not found for ID"));
+        verify(paymentRepository, times(1)).findById(invalidPaymentId);
+    }
+
 
 }
